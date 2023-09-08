@@ -1,0 +1,22 @@
+# 필요한 라이브러리 Import
+#디렉토리 확인 및 데이터테이블 처리 위한 os, pandas 패키지,
+#그리고 분석의 편의를 위한 경고 제어 warmings 패키지 로드
+import os
+import pandas as pd
+import warnings
+warnings.simplefilter("ignore")
+
+#os.getcwd() : 현재 작업하고 있는 디렉토리의 경로
+directory_path = os.path.join(os.getcwd(), 'raw_data/2023_2_RAW')
+
+file_list = [file for file in os.listdir(directory_path) if file.endswith('.xlsx')]
+
+merged_data = pd.DataFrame()
+
+for file in file_list:
+    file_path = os.path.join(directory_path, file)
+    data = pd.read_excel(file_path)
+    merged_data = pd.concat([merged_data, data], ignore_index=True)
+    
+output_file = 'raw_merged.xlsx'
+merged_data.to_excel(output_file, index=False)
