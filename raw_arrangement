@@ -1,0 +1,172 @@
+# 필요한 라이브러리 Import
+import pandas as pd
+import numpy as np
+import warnings
+warnings.simplefilter("ignore")
+
+# 데이터 불러오기
+df1 = pd.read_excel('raw_merged.xlsx')
+df2 = pd.read_excel('raw_merged_2.xlsx')
+
+# df1 특정 컬럼명만 조회
+df1 = df1[[
+    '기간',
+    '캠페인 이름',
+    'Account ID',
+    '목표',
+    '비용',
+    '노출수',
+    '트윗 참여',
+    '리트윗 수',
+    '답글',
+    '팔로우 수',
+    '클릭수',
+    '링크 클릭수',
+    '마음에 들어요',
+    '투표',
+    '미디어 참여',
+    '동영상 조회',
+    '동영상 전체화면 3초 조회수',
+    '동영상 6초 조회수',
+    '동영상 15초 조회수',
+    '동영상 25% 재생',
+    '동영상 50% 재생',
+    '동영상 75% 재생',
+    '동영상 재생 완료',
+    '프리롤 조회수',
+    '프리롤 25% 재생',
+    '프리롤 50% 재생',
+    '프리롤 75% 재생',
+    '프리롤 완료 수',
+    '설치 횟수',
+    '앱 클릭수'
+]]
+
+# df2 특정 컬럼명만 조회
+df2 = df2[[
+    '캠페인 이름',
+    '플랫폼',
+    '위치'
+]]
+
+# df1 날짜 정리
+df1['Smonth'] = df1['기간'].str.split('-').str[0]
+df1['Emonth'] = df1['기간'].str.split('-').str[1]
+df1['Smonth'] = pd.to_datetime(df1['Smonth']).dt.strftime('%m')
+df1['Emonth'] = pd.to_datetime(df1['Emonth']).dt.strftime('%m')
+
+# 데이터타입 int 변환
+df1 = df1.replace('-', '0')
+df1['Smonth'] = df1['Smonth'].astype(int)
+df1['Emonth'] = df1['Emonth'].astype(int)
+df1['리트윗 수'] = df1['리트윗 수'].astype(int)
+df1['답글'] = df1['답글'].astype(int)
+df1['팔로우 수'] = df1['팔로우 수'].astype(int)
+df1['미디어 참여'] = df1['미디어 참여'].astype(int)
+df1['설치 횟수'] = df1['설치 횟수'].astype(int)
+
+# df1 컬럼 값 변경
+df1['목표'] = df1['목표'].replace({
+    '참여':'Engagements',
+    '도달 범위':'Reach',
+    '동영상 조회':'Video views',
+    '웹사이트 트래픽':'Website clicks',
+    '전환':'Conversion',
+    '프리롤':'Pre-roll',
+    '프리롤 스폰십':'Pre-roll Sponsorship',
+    '팔로워':'Followers',
+    '앱 설치':'App installs',
+    '앱 재참여':'App re-engagements'
+})
+
+# df2 컬럼 값 변경
+df2['플랫폼'] = df2['플랫폼'].replace(to_replace=r';', value='/', regex=True)
+df2['위치'] = df2['위치'].replace({
+    'i258:South Korea':'대한민국',
+    'i210:Taiwan':'대만',
+    'i19:Germany':'독일',
+    'ii168:Malaysia':'말레이시아',
+    'i40:Mexico':'맥시코',
+    'i2:United States':'미국',
+    'i428:Vietnam':'베트남',
+    'i41:Brazil':'브라질',
+    'i211:Singapore':'싱가폴',
+    'i18:United Kingdom':'영국',
+    'i167:India':'인도',
+    'i170:Indonesia':'인도네시아',
+    'i35:Japan':'일본',
+    'i284:Thailand':'태국',
+    'i169:Philippines':'필리핀',
+    'i164:Hong Kong SAR China':'홍콩',
+    'i26:New Zealand':'뉴질렌드',
+    'i102:Chile':'필레',
+    'i43:Switzerland':'스위스',
+    'i57:Finland':'핀란드',
+    'i20:Australia':'호주',
+    'i39:Spain':'스페인',
+    'i46:Italy':'이탈리아',
+    'i1:Canada':'캐나다',
+    'i21:France':'프랑스',
+    'i103:Turkey':'터키',
+    'i33247:Seoul, KR':'서울',
+    'i165:Slovakia':'슬로바키아',
+    'i264:Israel':'이스라엘',
+    'i263:Slovenia':'슬로베니아',
+    'i45:South Africa':'남아프리카',
+    'i148:Uruguay':'우루과이'
+})
+
+#결측치 처리
+df2['플랫폼'] = df2['플랫폼'].fillna('All')
+df2['위치'] = df2['위치'].fillna('Non')
+
+# df1 컬럼 추가하기
+df1['Ad type'] = 'Promotion tweet'
+df1['Devices(대)'] = '-'
+df1['Spend(Gross)'] = df1['비용'] / 0.7
+
+# df1, df2 캠페인 이름 기준 데이터 합치기
+df_total = pd.merge(df1, df2, on='캠페인 이름')
+
+# df_total 컬럼 순서 정리
+df_total2 = df_total[[
+    '캠페인 이름',
+    'Account ID',
+    'Smonth',
+    'Emonth',
+    'Ad type',
+    '목표',
+    '위치',
+    'Devices(대)',
+    '플랫폼',
+    'Spend(Gross)',
+    '비용',
+    '노출수',
+    '트윗 참여',
+    '리트윗 수',
+    '답글',
+    '팔로우 수',
+    '클릭수',
+    '링크 클릭수',
+    '마음에 들어요',
+    '투표',
+    '미디어 참여',
+    '동영상 조회',
+    '동영상 전체화면 3초 조회수',
+    '동영상 6초 조회수',
+    '동영상 15초 조회수',
+    '동영상 25% 재생',
+    '동영상 50% 재생',
+    '동영상 75% 재생',
+    '동영상 재생 완료',
+    '프리롤 조회수',
+    '프리롤 25% 재생',
+    '프리롤 50% 재생',
+    '프리롤 75% 재생',
+    '프리롤 완료 수',
+    '설치 횟수',
+    '앱 클릭수'
+]]
+
+#결과 파일 추출
+df_total2.to_excel('raw_complete.xlsx')
